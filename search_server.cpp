@@ -31,7 +31,7 @@ void SearchServer::AddQueriesStream(
   for (string current_query; getline(query_input, current_query); ) {
     const auto words = SplitIntoWords(current_query);
 
-    map<size_t, size_t> docid_count;
+    unordered_map<size_t, size_t> docid_count;
     for (const auto& word : words) {
       for (const size_t docid : index.Lookup(word)) {
         docid_count[docid]++;
@@ -41,8 +41,9 @@ void SearchServer::AddQueriesStream(
     vector<pair<size_t, size_t>> search_results(
       docid_count.begin(), docid_count.end()
     );
-    sort(
+    partial_sort(
       begin(search_results),
+      begin(search_results) + ((search_results.size() < 5) ? search_results.size() : 5),
       end(search_results),
       [](pair<size_t, size_t> lhs, pair<size_t, size_t> rhs) {
         int64_t lhs_docid = lhs.first;
